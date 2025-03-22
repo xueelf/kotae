@@ -1,0 +1,38 @@
+{
+  "name": "kotae",
+  "version": "0.0.0",
+  "description": "A lightweight JavaScript implementation of ReactiveX",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "packageManager": "bun@1.2.0",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "bun scripts/build/index.ts && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/kotae.git"
+  },
+  "keywords": [
+    "observable",
+    "reactive",
+    "rx",
+    "rxjs",
+    "stream"
+  ],
+  "author": "Yuki <admin@yuki.sh>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xueelf/kotae/issues"
+  },
+  "homepage": "https://github.com/xueelf/kotae#readme",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "nebia": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "latest"
+  }
+}
