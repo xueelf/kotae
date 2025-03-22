@@ -128,4 +128,22 @@ export class Observable<T> implements Subscribable<T> {
     subscriber.add(this.#trySubscribe(subscriber));
     return subscriber;
   }
+
+  forEach(next: (value: T) => void): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const subscriber = new Subscriber({
+        next: (value: T) => {
+          try {
+            next(value);
+          } catch (err) {
+            reject(err);
+            subscriber.unsubscribe();
+          }
+        },
+        error: reject,
+        complete: resolve,
+      });
+      this.subscribe(subscriber);
+    });
+  }
 }
