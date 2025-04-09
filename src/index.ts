@@ -1,8 +1,6 @@
-import type { OperatorFunction, UnaryFunction } from './operators';
-
 export interface Observer<T> {
   next: (value: T) => void;
-  error: (err: unknown) => void;
+  error: (err: any) => void;
   complete: () => void;
 }
 
@@ -52,7 +50,7 @@ export interface SubscriberOverrides<T> extends Partial<Observer<T>> {
 
 export class Subscriber<T> extends Subscription implements Observer<T> {
   #next?: ((value: T) => void) | null;
-  #error?: ((err: unknown) => void) | null;
+  #error?: ((err: any) => void) | null;
   #complete?: (() => void) | null;
   #onFinalize?: (() => void) | null;
 
@@ -98,7 +96,7 @@ export class Subscriber<T> extends Subscription implements Observer<T> {
     this.#generator.next(value);
   }
 
-  error(err?: unknown): void {
+  error(err?: any): void {
     if (this.#isStopped) {
       return;
     }
@@ -270,6 +268,48 @@ export function operate<In, Out>({
   return new Subscriber(destination, subscriberOverrides);
 }
 
-function pipeReducer(prev: unknown, fn: UnaryFunction<unknown, unknown>): unknown {
+function pipeReducer(prev: any, fn: UnaryFunction<any, any>): any {
   return fn(prev);
+}
+
+export interface UnaryFunction<T, R> {
+  (source: T): R;
+}
+export interface OperatorFunction<T, R> extends UnaryFunction<Observable<T>, Observable<R>> {}
+
+// https://github.com/ReactiveX/rxjs/blob/master/packages/rxjs/src/internal/operators/map.ts
+export function map<T, R>(project: (value: T, index: number) => R): OperatorFunction<T, R> {
+  return source =>
+    new Observable(destination => {
+      let index = 0;
+
+      source.subscribe(
+        operate({
+          destination,
+          next: (value: T) => {
+            destination.next(project(value, index++));
+          },
+        }),
+      );
+    });
+}
+
+export interface MonoTypeOperatorFunction<T> extends OperatorFunction<T, T> {}
+
+// https://github.com/ReactiveX/rxjs/blob/master/packages/rxjs/src/internal/operators/filter.ts
+export function filter<T>(
+  predicate: (value: T, index: number) => boolean,
+  thisArg?: any,
+): MonoTypeOperatorFunction<T> {
+  return source =>
+    new Observable(destination => {
+      let index = 0;
+
+      source.subscribe(
+        operate({
+          destination,
+          next: value => predicate.call(thisArg, value, index++) && destination.next(value),
+        }),
+      );
+    });
 }
